@@ -27,7 +27,11 @@ const MyTransaction = () => {
     alert("Deleted successfully!");
   };
 
-
+  const handleView = (t) => {
+    setSelectedTransaction(t);
+    setShowModal(true);
+    setEditMode(false);
+  };
 
   const handleEdit = (t) => {
     setSelectedTransaction(t);
