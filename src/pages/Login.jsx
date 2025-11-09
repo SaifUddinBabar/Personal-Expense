@@ -7,7 +7,7 @@ const Login = () => {
   const location = useLocation();
   const { login, loginWithGoogle } = useAuth();
 
-=  const from = location.state?.from?.pathname || "/";
+  const from = location.state?.from?.pathname || "/";
 
   const handleSignin = async (e) => {
     e.preventDefault();
@@ -17,7 +17,7 @@ const Login = () => {
     try {
       const res = await login(email, password);
       console.log(res.user);
-      navigate(from, { replace: true }); 
+      navigate(from, { replace: true });
     } catch (err) {
       console.error(err.message);
     }
@@ -27,7 +27,7 @@ const Login = () => {
     try {
       const res = await loginWithGoogle();
       console.log("Google user:", res.user);
-      navigate(from, { replace: true }); // Google login successful হলে redirect
+      navigate(from, { replace: true });
     } catch (err) {
       console.error(err.message);
     }
