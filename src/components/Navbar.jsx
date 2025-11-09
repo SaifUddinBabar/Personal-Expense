@@ -54,6 +54,7 @@ const Navbar = () => {
             <Link to="/register" className="hover:underline">
               Register
             </Link>
+            
           </>
         )}
       </div>

@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { useAuth } from "../AuthContext";
+import { useNavigate } from "react-router";
 
 const AddTransaction = () => {
+  const navigate = useNavigate()
   const { user } = useAuth();
   const [formData, setFormData] = useState({
     type: "",
@@ -51,6 +53,8 @@ const AddTransaction = () => {
       console.error("Error adding transaction:", err.message);
       alert("Failed to add transaction");
     }
+  navigate('/my-transactions');
+
   };
 
   return (
