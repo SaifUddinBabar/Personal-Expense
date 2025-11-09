@@ -1,9 +1,48 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../AuthContext";
+import { updateProfile } from "firebase/auth";
 
 const Register = () => {
+  const { register, loginWithGoogle } = useAuth(); // ✅ destructuring corrected
+  const navigate = useNavigate();
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    const name = e.target.name.value;
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+    const photo = e.target.photo.value;
+
+    try {
+      const res = await register(email, password); // ✅ Firebase email/password register
+      console.log("Registered user:", res.user);
+
+      // ✅ update profile correctly
+      await updateProfile(res.user, {
+        displayName: name,
+        photoURL: photo || "",
+      });
+
+      navigate("/"); // ✅ Registration successful হলে হোমে navigate
+    } catch (err) {
+      console.error("Registration error:", err.message);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const res = await loginWithGoogle();
+      console.log("Google user:", res.user);
+      navigate("/"); // Successful login হলে হোমে redirect
+    } catch (err) {
+      console.error("Google login error:", err.message);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-4">
-      <form className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-md space-y-4">
+      <form onSubmit={handleRegister} className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-md space-y-4">
         <h2 className="text-3xl font-bold text-center text-blue-600 mb-6">
           Create Your Account
         </h2>
@@ -36,22 +75,20 @@ const Register = () => {
           className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
 
-        <button className="w-full mt-4 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-all font-semibold">
+        <button
+          type="submit"
+          className="w-full mt-4 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-all font-semibold"
+        >
           Register
         </button>
 
         <p className="text-gray-400 text-center py-2">OR CONTINUE WITH</p>
 
-        <button className="flex items-center justify-center w-full py-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-all gap-2">
-          <svg aria-label="Google logo" width="20" height="20" viewBox="0 0 512 512">
-            <g>
-              <path d="m0 0H512V512H0" fill="#fff"></path>
-              <path fill="#34a853" d="M153 292c30 82 118 95 171 60h62v48A192 192 0 0190 341"></path>
-              <path fill="#4285f4" d="m386 400a140 175 0 0053-179H260v74h102q-7 37-38 57"></path>
-              <path fill="#fbbc02" d="m90 341a208 200 0 010-171l63 49q-12 37 0 73"></path>
-              <path fill="#ea4335" d="m153 219c22-69 116-109 179-50l55-54c-78-75-230-72-297 55"></path>
-            </g>
-          </svg>
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          className="flex items-center justify-center w-full py-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-all gap-2"
+        >
           Login with Google
         </button>
 
