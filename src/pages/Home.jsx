@@ -1,5 +1,6 @@
 import React from 'react';
 import Hero from './Hero';
+import Footer from '../components/Footer';
 
 const Home = () => {
     return (
@@ -9,6 +10,7 @@ const Home = () => {
         Manage your income, expenses, and savings goals all in one place.
       </p>
       <Hero></Hero>
+      <Footer></Footer>
     </div>
     );
 };

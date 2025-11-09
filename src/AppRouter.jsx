@@ -3,6 +3,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/Notfound";
+import AddTransaction from "./components/AddTransaction";
 
 const AppRouter = () => {
   return (
@@ -11,6 +12,7 @@ const AppRouter = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="*" element={<NotFound />} />
+      <Route path="/add-transaction" element={<AddTransaction></AddTransaction>}></Route>
     </Routes>
   );
 };
