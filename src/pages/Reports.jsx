@@ -9,7 +9,6 @@ const Reports = () => {
   const [monthFilter, setMonthFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
 
-  // ✅ Fetch data from backend
   useEffect(() => {
     fetch("http://localhost:4000/data")
       .then((res) => res.json())

@@ -38,6 +38,9 @@ const Navbar = () => {
         <Link to="/reports" className="hover:underline">
           Reports
         </Link>
+        <Link to="/my-profile" className="hover:underline">
+          Profile
+        </Link>
       </div>
 
       {/* Right Section: Auth Links */}
@@ -54,7 +57,7 @@ const Navbar = () => {
             <Link to="/register" className="hover:underline">
               Register
             </Link>
-            
+
           </>
         )}
       </div>

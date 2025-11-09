@@ -8,6 +8,7 @@ import PrivateRoute from "./PrivateRoute";
 import Dashboard from "./pages/Dashboard";
 import Mytransaction from "./components/Mytransaction";
 import Reports from "./pages/Reports";
+import MyProfile from "./components/MyProfile";
 
 const AppRouter = () => {
   return (
@@ -24,8 +25,10 @@ const AppRouter = () => {
       />
       <Route path="/reports" element={<PrivateRoute><Reports></Reports></PrivateRoute>}></Route>
       <Route path="/my-transactions" element={<PrivateRoute><Mytransaction></Mytransaction></PrivateRoute>}></Route>
+      <Route path="/my-profile" element={<PrivateRoute><MyProfile></MyProfile></PrivateRoute>}></Route>
       <Route path="*" element={<NotFound />} />
       <Route path="/dashboard" element={<Dashboard></Dashboard>}></Route>
+      
     </Routes>
   );
 };
