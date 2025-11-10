@@ -1,9 +1,8 @@
+// MyProfile.jsx
 import React, { useState } from "react";
 import { useAuth } from "../AuthContext"; 
 import { toast, ToastContainer } from "react-toastify"; 
 import "react-toastify/dist/ReactToastify.css";
-import Loader from "../components/Loader";
-import { motion } from "framer-motion";
 
 const MyProfile = () => {
   const { user, updateUserProfile } = useAuth();
@@ -24,41 +23,38 @@ const MyProfile = () => {
       await updateUserProfile(formData.displayName, formData.photoURL);
       toast.success("Profile updated successfully!");
     } catch (error) {
+      console.error(error);
       toast.error("Failed to update profile");
     }
     setLoading(false);
   };
 
-  if (loading) return <Loader />;
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100/20 to-purple-100/20 p-6">
       <ToastContainer position="top-right" autoClose={3000} />
-      <motion.form
+      <form
         onSubmit={handleSubmit}
-        className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-md space-y-6"
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
+        className="backdrop-blur-md bg-white/20 border border-white/30 shadow-lg rounded-3xl p-10 w-full max-w-md space-y-6"
       >
-        <h2 className="text-3xl font-bold text-center text-blue-600 mb-4">
+        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
           My Profile
         </h2>
 
         <div className="flex flex-col items-center">
-          <motion.img
-            src={formData.photoURL || "/default-profile.png"}
-            alt="Profile"
-            className="w-24 h-24 rounded-full mb-4 object-cover shadow-lg"
-            whileHover={{ scale: 1.05 }}
-          />
+          <div className="w-28 h-28 rounded-full overflow-hidden shadow-md mb-4 border border-white/40">
+            <img
+              src={formData.photoURL || "/default-profile.png"}
+              alt="Profile"
+              className="w-full h-full object-cover"
+            />
+          </div>
           <input
             type="text"
             name="photoURL"
             value={formData.photoURL}
             onChange={handleChange}
             placeholder="Photo URL"
-            className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full border border-white/30 bg-white/10 rounded-lg p-3 placeholder-gray-300 text-gray-800 focus:outline-none focus:ring-2 focus:ring-white/50"
           />
         </div>
 
@@ -69,28 +65,24 @@ const MyProfile = () => {
           onChange={handleChange}
           placeholder="Name"
           required
-          className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full border border-white/30 bg-white/10 rounded-lg p-3 placeholder-gray-300 text-gray-800 focus:outline-none focus:ring-2 focus:ring-white/50"
         />
 
         <input
           type="email"
           value={user?.email}
           readOnly
-          className="w-full border border-gray-300 rounded-lg p-3 bg-gray-100 cursor-not-allowed"
+          className="w-full border border-white/30 bg-white/10 rounded-lg p-3 text-gray-800 cursor-not-allowed"
         />
 
         <button
           type="submit"
           disabled={loading}
-          className={`w-full mt-4 py-3 rounded-lg font-semibold transition-all ${
-            loading
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700 text-white"
-          }`}
+          className="w-full py-3 rounded-xl backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 font-semibold hover:bg-white/30 hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? "Updating..." : "Update Profile"}
         </button>
-      </motion.form>
+      </form>
     </div>
   );
 };

@@ -1,5 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 import { TrendingUp, TrendingDown, Calendar } from "lucide-react";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82ca9d", "#ffc658"];
@@ -16,7 +28,6 @@ const Reports = () => {
       .catch((err) => console.error(err));
   }, []);
 
-  // ✅ Filter logic
   const filteredTransactions = transactions.filter((t) => {
     const transactionDate = new Date(t.date);
     const now = new Date();
@@ -32,7 +43,6 @@ const Reports = () => {
     return matchesMonth && matchesCategory;
   });
 
-  // ✅ Category wise total
   const categoryData = filteredTransactions.reduce((acc, t) => {
     const found = acc.find((i) => i.name === t.category);
     if (found) found.value += Number(t.amount);
@@ -40,25 +50,25 @@ const Reports = () => {
     return acc;
   }, []);
 
-  // ✅ Monthly income vs expense
-  const monthlyData = filteredTransactions.reduce((acc, t) => {
-    const date = new Date(t.date);
-    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-    const found = acc.find((i) => i.month === monthKey);
-    if (found) {
-      if (t.type === "Income") found.income += Number(t.amount);
-      else found.expense += Number(t.amount);
-    } else {
-      acc.push({
-        month: monthKey,
-        income: t.type === "Income" ? Number(t.amount) : 0,
-        expense: t.type === "Expense" ? Number(t.amount) : 0,
-      });
-    }
-    return acc;
-  }, []).sort((a, b) => a.month.localeCompare(b.month));
+  const monthlyData = filteredTransactions
+    .reduce((acc, t) => {
+      const date = new Date(t.date);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      const found = acc.find((i) => i.month === monthKey);
+      if (found) {
+        if (t.type === "Income") found.income += Number(t.amount);
+        else found.expense += Number(t.amount);
+      } else {
+        acc.push({
+          month: monthKey,
+          income: t.type === "Income" ? Number(t.amount) : 0,
+          expense: t.type === "Expense" ? Number(t.amount) : 0,
+        });
+      }
+      return acc;
+    }, [])
+    .sort((a, b) => a.month.localeCompare(b.month));
 
-  // ✅ Totals
   const totalIncome = filteredTransactions
     .filter((t) => t.type === "Income")
     .reduce((sum, t) => sum + Number(t.amount), 0);
@@ -69,13 +79,13 @@ const Reports = () => {
   const categories = Array.from(new Set(transactions.map((t) => t.category)));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-gray-50 to-white py-12 px-6">
-      <h1 className="text-3xl font-bold text-blue-600 mb-6">Financial Reports</h1>
+    <div className="min-h-screen p-6 bg-gradient-to-br from-blue-50/20 to-purple-50/20">
+      <h1 className="text-3xl font-bold mb-6 text-center text-gray-900">Financial Reports</h1>
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4 mb-8">
         <select
-          className="border p-2 rounded-md w-full md:w-1/2"
+          className="border border-white/50 backdrop-blur-md bg-white/30 p-2 rounded-xl w-full md:w-1/2"
           value={monthFilter}
           onChange={(e) => setMonthFilter(e.target.value)}
         >
@@ -87,7 +97,7 @@ const Reports = () => {
         </select>
 
         <select
-          className="border p-2 rounded-md w-full md:w-1/2"
+          className="border border-white/50 backdrop-blur-md bg-white/30 p-2 rounded-xl w-full md:w-1/2"
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
         >
@@ -98,34 +108,30 @@ const Reports = () => {
         </select>
       </div>
 
-      {/* Summary */}
+      {/* Summary Cards */}
       <div className="grid gap-6 md:grid-cols-3 mb-8">
-        <div className="bg-white p-6 rounded-xl shadow-md">
+        <div className="backdrop-blur-md bg-white/30 border border-white/50 p-6 rounded-3xl shadow-lg flex flex-col gap-2">
           <div className="flex justify-between items-center">
-            <h2 className="text-gray-500">Total Income</h2>
+            <h2 className="text-gray-500 font-semibold">Total Income</h2>
             <TrendingUp className="h-5 w-5 text-green-500" />
           </div>
-          <p className="text-2xl font-bold text-green-600 mt-2">${totalIncome.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-green-600">${totalIncome.toFixed(2)}</p>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-md">
+        <div className="backdrop-blur-md bg-white/30 border border-white/50 p-6 rounded-3xl shadow-lg flex flex-col gap-2">
           <div className="flex justify-between items-center">
-            <h2 className="text-gray-500">Total Expense</h2>
+            <h2 className="text-gray-500 font-semibold">Total Expense</h2>
             <TrendingDown className="h-5 w-5 text-red-500" />
           </div>
-          <p className="text-2xl font-bold text-red-600 mt-2">${totalExpense.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-red-600">${totalExpense.toFixed(2)}</p>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-md">
+        <div className="backdrop-blur-md bg-white/30 border border-white/50 p-6 rounded-3xl shadow-lg flex flex-col gap-2">
           <div className="flex justify-between items-center">
-            <h2 className="text-gray-500">Net Balance</h2>
+            <h2 className="text-gray-500 font-semibold">Net Balance</h2>
             <Calendar className="h-5 w-5 text-gray-400" />
           </div>
-          <p
-            className={`text-2xl font-bold mt-2 ${
-              totalIncome - totalExpense >= 0 ? "text-green-600" : "text-red-600"
-            }`}
-          >
+          <p className={`text-2xl font-bold ${totalIncome - totalExpense >= 0 ? "text-green-600" : "text-red-600"}`}>
             ${(totalIncome - totalExpense).toFixed(2)}
           </p>
         </div>
@@ -133,7 +139,7 @@ const Reports = () => {
 
       {/* Charts */}
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="bg-white p-6 rounded-xl shadow-md">
+        <div className="backdrop-blur-md bg-white/30 border border-white/50 p-6 rounded-3xl shadow-lg">
           <h2 className="text-xl font-semibold mb-4">Spending by Category</h2>
           {categoryData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -159,7 +165,7 @@ const Reports = () => {
           )}
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-md">
+        <div className="backdrop-blur-md bg-white/30 border border-white/50 p-6 rounded-3xl shadow-lg">
           <h2 className="text-xl font-semibold mb-4">Monthly Trends</h2>
           {monthlyData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>

@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../AuthContext";
-import { toast } from "react-toastify";
+import { motion, AnimatePresence } from "framer-motion";
+import { FiEye, FiEdit, FiTrash2, FiX } from "react-icons/fi";
+import { toast, ToastContainer } from "react-toastify";
+import Swal from "sweetalert2"; // <-- added SweetAlert2
+import "react-toastify/dist/ReactToastify.css";
 
 const MyTransaction = () => {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTransaction, setSelectedTransaction] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [editMode, setEditMode] = useState(false); 
+  const [modalTransaction, setModalTransaction] = useState(null);
+  const [modalMode, setModalMode] = useState("view"); // "view" or "edit"
 
   useEffect(() => {
     if (!user?.email) return;
@@ -22,148 +25,218 @@ const MyTransaction = () => {
   }, [user]);
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this transaction?")) return;
-    await fetch(`http://localhost:4000/data/${id}`, { method: "DELETE" });
-    setTransactions(transactions.filter((t) => t._id !== id));
-  
-
-  };
-
-  const handleView = (t) => {
-    setSelectedTransaction(t);
-    setShowModal(true);
-    setEditMode(false);
-  };
-
-  const handleEdit = (t) => {
-    setSelectedTransaction(t);
-    setShowModal(true);
-    setEditMode(true);
-  };
-
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    const id = selectedTransaction._id;
-
-    const res = await fetch(`http://localhost:4000/data/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(selectedTransaction),
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
     });
 
-    const data = await res.json();
-    if (res.ok) {
-      alert("Transaction updated!");
-      setTransactions(
-        transactions.map((t) => (t._id === id ? data.data : t))
-      );
-      setShowModal(false);
-    } else {
-      toast.success("Transaction added successfully!");
+    if (result.isConfirmed) {
+      try {
+        await fetch(`http://localhost:4000/data/${id}`, { method: "DELETE" });
+        setTransactions(transactions.filter((t) => t._id !== id));
+        Swal.fire('Deleted!', 'Transaction has been deleted.', 'success');
+      } catch (err) {
+        console.error(err);
+        Swal.fire('Error!', 'Failed to delete transaction.', 'error');
+      }
     }
   };
 
-  if (loading) return <p>Loading...</p>;
+  const openModal = (transaction, mode) => {
+    setModalTransaction(transaction);
+    setModalMode(mode);
+  };
+
+  const closeModal = () => setModalTransaction(null);
+
+  const handleEditChange = (e) => {
+    setModalTransaction({ ...modalTransaction, [e.target.name]: e.target.value });
+  };
+
+  const handleUpdate = async () => {
+    try {
+      const res = await fetch(`http://localhost:4000/data/${modalTransaction._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(modalTransaction),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setTransactions(transactions.map((t) => (t._id === data.data._id ? data.data : t)));
+        toast.success("Transaction updated!");
+        closeModal();
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update transaction");
+    }
+  };
+
+  if (loading)
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <svg
+          className="animate-spin h-12 w-12 text-blue-600"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+        </svg>
+      </div>
+    );
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-blue-600">My Transactions</h1>
+    <div className="min-h-screen p-6 bg-gradient-to-br from-blue-50/20 to-purple-50/20">
+      <ToastContainer position="top-right" autoClose={3000} />
+      <h1 className="text-3xl font-bold mb-6 text-center text-gray-900">My Transactions</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {transactions.map((t) => (
-          <div key={t._id} className="bg-white p-6 rounded-xl shadow-md">
-            <div className="flex justify-between">
-              <h2 className="font-semibold">{t.category}</h2>
-              <span
-                className={`px-2 py-1 rounded-full ${
-                  t.type === "Income" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                }`}
-              >
-                {t.type}
-              </span>
-            </div>
-            <p>{t.description}</p>
-            <p className="text-sm text-gray-500">{new Date(t.date).toLocaleDateString()}</p>
-            <p className="font-bold">{t.amount}৳</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {transactions.length > 0 ? (
+          transactions.map((t) => (
+            <motion.div
+              key={t._id}
+              whileHover={{ scale: 1.03 }}
+              className="backdrop-blur-md bg-white/40 border border-white/50 rounded-3xl p-6 shadow-lg flex flex-col justify-between transition-all hover:shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-3">
+                <h2 className="text-lg font-semibold text-gray-900">{t.category}</h2>
+                <span
+                  className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                    t.type === "Income"
+                      ? "bg-green-200 text-green-900"
+                      : "bg-red-200 text-red-900"
+                  }`}
+                >
+                  {t.type}
+                </span>
+              </div>
 
-            <div className="flex gap-2 mt-3">
-              <button onClick={() => handleView(t)} className="flex-1 bg-blue-100 rounded p-2">👁️ View</button>
-              <button onClick={() => handleEdit(t)} className="flex-1 bg-yellow-100 rounded p-2">✏️ Edit</button>
-              <button onClick={() => handleDelete(t._id)} className="flex-1 bg-red-100 rounded p-2">🗑️ Delete</button>
-            </div>
-          </div>
-        ))}
+              <p className="text-gray-800 mb-2">{t.description || "-"}</p>
+              <p className="text-gray-600 text-sm mb-2">{new Date(t.date).toLocaleDateString()}</p>
+              <p className="font-bold text-2xl text-gray-900 mb-4">{t.amount}৳</p>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => openModal(t, "view")}
+                  className="flex-1 py-2 rounded-xl bg-white/30 border border-white/50 text-gray-900 font-semibold hover:scale-105 transition-all flex items-center justify-center gap-2"
+                >
+                  <FiEye /> View
+                </button>
+                <button
+                  onClick={() => openModal(t, "edit")}
+                  className="flex-1 py-2 rounded-xl bg-white/30 border border-white/50 text-gray-900 font-semibold hover:scale-105 transition-all flex items-center justify-center gap-2"
+                >
+                  <FiEdit /> Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(t._id)}
+                  className="flex-1 py-2 rounded-xl bg-white/30 border border-white/50 text-red-700 font-semibold hover:scale-105 transition-all flex items-center justify-center gap-2"
+                >
+                  <FiTrash2 /> Delete
+                </button>
+              </div>
+            </motion.div>
+          ))
+        ) : (
+          <p className="text-center col-span-full text-gray-700 py-12">No transactions found</p>
+        )}
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-xl w-96 relative">
-            <button onClick={() => setShowModal(false)} className="absolute top-2 right-3 text-xl">&times;</button>
+      {/* Modal */}
+      <AnimatePresence>
+        {modalTransaction && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8 }}
+              className="bg-white/90 backdrop-blur-md border border-white/50 rounded-3xl p-6 w-full max-w-md shadow-2xl relative"
+            >
+              <button
+                onClick={closeModal}
+                className="absolute top-4 right-4 text-gray-900 hover:text-red-600"
+              >
+                <FiX size={24} />
+              </button>
 
-            {editMode ? (
-              <>
-                <h2 className="text-2xl mb-4 text-blue-600 text-center">Edit Transaction</h2>
-                <form onSubmit={handleUpdate} className="flex flex-col gap-3">
+              {modalMode === "view" ? (
+                <div className="flex flex-col gap-3 text-gray-900">
+                  <h2 className="text-2xl font-bold">{modalTransaction.category}</h2>
+                  <p>Type: {modalTransaction.type}</p>
+                  <p>Amount: {modalTransaction.amount}৳</p>
+                  <p>Date: {new Date(modalTransaction.date).toLocaleDateString()}</p>
+                  <p>Description: {modalTransaction.description || "-"}</p>
+                </div>
+              ) : (
+                <form className="flex flex-col gap-3" onSubmit={(e) => { e.preventDefault(); handleUpdate(); }}>
                   <input
-                    className="border p-2 rounded"
-                    value={selectedTransaction.type}
-                    onChange={(e) =>
-                      setSelectedTransaction({ ...selectedTransaction, type: e.target.value })
-                    }
-                    placeholder="Type (Income/Expense)"
+                    type="text"
+                    name="category"
+                    value={modalTransaction.category}
+                    onChange={handleEditChange}
+                    className="border border-gray-400 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   />
-                  <input
-                    className="border p-2 rounded"
-                    value={selectedTransaction.description}
-                    onChange={(e) =>
-                      setSelectedTransaction({ ...selectedTransaction, description: e.target.value })
-                    }
-                    placeholder="Description"
-                  />
-                  <input
-                    className="border p-2 rounded"
-                    value={selectedTransaction.category}
-                    onChange={(e) =>
-                      setSelectedTransaction({ ...selectedTransaction, category: e.target.value })
-                    }
-                    placeholder="Category"
-                  />
+                  <select
+                    name="type"
+                    value={modalTransaction.type}
+                    onChange={handleEditChange}
+                    className="border border-gray-400 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  >
+                    <option value="Income">Income</option>
+                    <option value="Expense">Expense</option>
+                  </select>
                   <input
                     type="number"
-                    className="border p-2 rounded"
-                    value={selectedTransaction.amount}
-                    onChange={(e) =>
-                      setSelectedTransaction({ ...selectedTransaction, amount: e.target.value })
-                    }
-                    placeholder="Amount"
+                    name="amount"
+                    value={modalTransaction.amount}
+                    onChange={handleEditChange}
+                    className="border border-gray-400 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  />
+                  <input
+                    type="text"
+                    name="description"
+                    value={modalTransaction.description}
+                    onChange={handleEditChange}
+                    className="border border-gray-400 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   />
                   <input
                     type="date"
-                    className="border p-2 rounded"
-                    value={selectedTransaction.date?.split("T")[0]}
-                    onChange={(e) =>
-                      setSelectedTransaction({ ...selectedTransaction, date: e.target.value })
-                    }
+                    name="date"
+                    value={new Date(modalTransaction.date).toISOString().split("T")[0]}
+                    onChange={handleEditChange}
+                    className="border border-gray-400 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   />
-
-                  <button type="submit" className="bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
-                    Update
+                  <button
+                    type="submit"
+                    className="mt-3 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all"
+                  >
+                    Update Transaction
                   </button>
                 </form>
-              </>
-            ) : (
-              <>
-                <h2 className="text-2xl mb-4 text-blue-600 text-center">Transaction Details</h2>
-                <p><b>Type:</b> {selectedTransaction.type}</p>
-                <p><b>Description:</b> {selectedTransaction.description}</p>
-                <p><b>Category:</b> {selectedTransaction.category}</p>
-                <p><b>Amount:</b> {selectedTransaction.amount}৳</p>
-                <p><b>Date:</b> {new Date(selectedTransaction.date).toLocaleDateString()}</p>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
