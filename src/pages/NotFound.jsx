@@ -1,24 +1,25 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
-const Notfound = () => {
+const NotFound = () => {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-red-50 to-red-100 p-6">
-      <h1 className="text-9xl font-extrabold text-red-500 animate-bounce">404</h1>
-      <h2 className="text-3xl md:text-4xl font-bold mt-4 text-red-700 mb-2">
-        Oops! Page Not Found
-      </h2>
-      <p className="text-red-600 text-lg md:text-xl mb-6 text-center max-w-md">
-        Sorry, the page you are looking for doesn’t exist or has been moved.
+    <motion.div
+      className="flex flex-col justify-center items-center min-h-screen text-center bg-gradient-to-br from-red-50 to-red-100"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8 }}
+    >
+      <h1 className="text-6xl font-bold text-red-500 mb-4 animate-pulse">404</h1>
+      <h2 className="text-2xl font-semibold mb-2">Page Not Found</h2>
+      <p className="text-gray-600 mb-6">
+        Oops! The page you are looking for doesn’t exist.
       </p>
-      <Link
-        to="/"
-        className="px-6 py-3 bg-red-500 text-white font-semibold rounded-lg shadow-lg hover:bg-red-600 transition-all transform hover:scale-105"
-      >
-        Go Back Home
+      <Link to="/" className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-all font-semibold">
+        Back to Home
       </Link>
-    </div>
+    </motion.div>
   );
 };
 
-export default Notfound;
+export default NotFound;

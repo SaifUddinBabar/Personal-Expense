@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../AuthContext";
+import { toast } from "react-toastify";
 
 const MyTransaction = () => {
   const { user } = useAuth();
@@ -24,7 +25,8 @@ const MyTransaction = () => {
     if (!window.confirm("Delete this transaction?")) return;
     await fetch(`http://localhost:4000/data/${id}`, { method: "DELETE" });
     setTransactions(transactions.filter((t) => t._id !== id));
-    alert("Deleted successfully!");
+  
+
   };
 
   const handleView = (t) => {
@@ -57,7 +59,7 @@ const MyTransaction = () => {
       );
       setShowModal(false);
     } else {
-      alert("Update failed!");
+      toast.success("Transaction added successfully!");
     }
   };
 
