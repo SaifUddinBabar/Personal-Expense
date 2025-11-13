@@ -4,6 +4,8 @@ import { useNavigate } from "react-router";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
 
+const API_URL = import.meta.env.VITE_API_URL; // ✅ deployed server URL
+
 const AddTransaction = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -48,11 +50,14 @@ const AddTransaction = () => {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:4000/data", {
+      const res = await fetch(`${API_URL}/data`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(transactionData),
       });
+
+      if (!res.ok) throw new Error("Server error");
+
       await res.json();
       Swal.fire("Success", "Transaction added successfully!", "success");
       setFormData({ type: "", category: "", amount: "", description: "", date: "" });

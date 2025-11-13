@@ -9,8 +9,10 @@ const Dashboard = () => {
   const [totals, setTotals] = useState({ income: 0, expense: 0, balance: 0 });
   const [loading, setLoading] = useState(true);
 
+  const API_URL = "https://personal-expense-server.onrender.com";
+
   useEffect(() => {
-    fetch("http://localhost:4000/data")
+    fetch(`${API_URL}/data`)
       .then((res) => res.json())
       .then((data) => {
         setTransactions(data);
@@ -86,8 +88,6 @@ const Dashboard = () => {
         ))}
       </div>
 
-    
-
       <div className="mb-12">
         <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-6">Recent Transactions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -113,8 +113,6 @@ const Dashboard = () => {
           ))}
         </div>
       </div>
-
-      
     </div>
   );
 };

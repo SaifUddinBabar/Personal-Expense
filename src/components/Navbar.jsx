@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../AuthContext";
 import { FaUserCircle } from "react-icons/fa";
@@ -20,6 +20,11 @@ const Navbar = ({ theme, setTheme }) => {
     }
   };
 
+  const activeClass =
+    "bg-blue-600 text-white px-3 py-2 rounded-md transition-all";
+  const inactiveClass =
+    "hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md transition-all";
+
   return (
     <motion.nav
       initial={{ y: -80, opacity: 0 }}
@@ -35,22 +40,37 @@ const Navbar = ({ theme, setTheme }) => {
           FinEase
         </Link>
 
-        <div className="hidden md:flex gap-6 text-gray-700 dark:text-gray-200 font-medium">
-          <Link to="/" className="hover:text-blue-600 dark:hover:text-blue-400 transition">
+        <div className="hidden md:flex gap-2 text-gray-700 dark:text-gray-200 font-medium">
+          <NavLink
+            to="/"
+            className={({ isActive }) => (isActive ? activeClass : inactiveClass)}
+          >
             Home
-          </Link>
-          <Link to="/add-transaction" className="hover:text-blue-600 dark:hover:text-blue-400 transition">
+          </NavLink>
+          <NavLink
+            to="/add-transaction"
+            className={({ isActive }) => (isActive ? activeClass : inactiveClass)}
+          >
             Add
-          </Link>
-          <Link to="/my-transactions" className="hover:text-blue-600 dark:hover:text-blue-400 transition">
+          </NavLink>
+          <NavLink
+            to="/my-transactions"
+            className={({ isActive }) => (isActive ? activeClass : inactiveClass)}
+          >
             Transactions
-          </Link>
-          <Link to="/reports" className="hover:text-blue-600 dark:hover:text-blue-400 transition">
+          </NavLink>
+          <NavLink
+            to="/reports"
+            className={({ isActive }) => (isActive ? activeClass : inactiveClass)}
+          >
             Reports
-          </Link>
-          <Link to="/my-profile" className="hover:text-blue-600 dark:hover:text-blue-400 transition">
+          </NavLink>
+          <NavLink
+            to="/my-profile"
+            className={({ isActive }) => (isActive ? activeClass : inactiveClass)}
+          >
             Profile
-          </Link>
+          </NavLink>
         </div>
 
         <div className="flex items-center gap-4">
@@ -58,7 +78,11 @@ const Navbar = ({ theme, setTheme }) => {
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
             className="p-2 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
           >
-            {theme === "light" ? <FiMoon size={20} /> : <FiSun size={20} className="text-yellow-400" />}
+            {theme === "light" ? (
+              <FiMoon size={20} />
+            ) : (
+              <FiSun size={20} className="text-yellow-400" />
+            )}
           </button>
 
           {user ? (
@@ -76,7 +100,9 @@ const Navbar = ({ theme, setTheme }) => {
                 ) : (
                   <FaUserCircle className="text-2xl text-gray-600 dark:text-gray-300" />
                 )}
-                <span className="hidden sm:block text-gray-700 dark:text-gray-200">{user.displayName || "User"}</span>
+                <span className="hidden sm:block text-gray-700 dark:text-gray-200">
+                  {user.displayName || "User"}
+                </span>
               </button>
 
               {dropdownOpen && (
@@ -89,7 +115,11 @@ const Navbar = ({ theme, setTheme }) => {
                     <p className="font-semibold">{user.displayName}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
                   </div>
-                  <Link to="/my-profile" onClick={() => setDropdownOpen(false)} className="w-full text-left block px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+                  <Link
+                    to="/my-profile"
+                    onClick={() => setDropdownOpen(false)}
+                    className="w-full text-left block px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
                     Profile
                   </Link>
                   <button
@@ -134,44 +164,70 @@ const Navbar = ({ theme, setTheme }) => {
           className="md:hidden bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg shadow-md"
         >
           <div className="flex flex-col items-center py-4 gap-4 text-gray-700 dark:text-gray-200">
-            <Link to="/" className="hover:text-blue-600 dark:hover:text-blue-400" onClick={() => setIsMenuOpen(false)}>
+            <NavLink
+              to="/"
+              className={({ isActive }) => (isActive ? activeClass : inactiveClass)}
+              onClick={() => setIsMenuOpen(false)}
+            >
               Home
-            </Link>
-            <Link
+            </NavLink>
+            <NavLink
               to="/add-transaction"
-              className="hover:text-blue-600 dark:hover:text-blue-400"
+              className={({ isActive }) => (isActive ? activeClass : inactiveClass)}
               onClick={() => setIsMenuOpen(false)}
             >
               Add
-            </Link>
-            <Link
+            </NavLink>
+            <NavLink
               to="/my-transactions"
-              className="hover:text-blue-600 dark:hover:text-blue-400"
+              className={({ isActive }) => (isActive ? activeClass : inactiveClass)}
               onClick={() => setIsMenuOpen(false)}
             >
               Transactions
-            </Link>
-            <Link to="/reports" className="hover:text-blue-600 dark:hover:text-blue-400" onClick={() => setIsMenuOpen(false)}>
+            </NavLink>
+            <NavLink
+              to="/reports"
+              className={({ isActive }) => (isActive ? activeClass : inactiveClass)}
+              onClick={() => setIsMenuOpen(false)}
+            >
               Reports
-            </Link>
-            <Link to="/my-profile" className="hover:text-blue-600 dark:hover:text-blue-400" onClick={() => setIsMenuOpen(false)}>
+            </NavLink>
+            <NavLink
+              to="/my-profile"
+              className={({ isActive }) => (isActive ? activeClass : inactiveClass)}
+              onClick={() => setIsMenuOpen(false)}
+            >
               Profile
-            </Link>
+            </NavLink>
 
             {!user && (
               <>
-                <Link to="/login" className="text-blue-600" onClick={() => setIsMenuOpen(false)}>
+                <Link
+                  to="/login"
+                  className="text-blue-600"
+                  onClick={() => setIsMenuOpen(false)}
+                >
                   Login
                 </Link>
-                <Link to="/register" className="text-blue-600" onClick={() => setIsMenuOpen(false)}>
+                <Link
+                  to="/register"
+                  className="text-blue-600"
+                  onClick={() => setIsMenuOpen(false)}
+                >
                   Register
                 </Link>
               </>
             )}
             {user && (
-                <button onClick={() => { handleLogout(); setIsMenuOpen(false); }} className="text-red-500">
-                    Log out
-                </button>
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsMenuOpen(false);
+                }}
+                className="text-red-500"
+              >
+                Log out
+              </button>
             )}
           </div>
         </motion.div>

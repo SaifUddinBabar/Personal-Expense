@@ -22,7 +22,7 @@ const MyTransaction = () => {
   const fetchTransactions = () => {
     if (!user?.email) return;
     setLoading(true);
-    fetch(`http://localhost:4000/data?email=${user.email}`)
+    fetch(`https://personal-expense-server.onrender.com/data?email=${user.email}`)
       .then((res) => res.json())
       .then((data) => {
         setTransactions(data);
@@ -42,7 +42,6 @@ const MyTransaction = () => {
   const sortedTransactions = useMemo(() => {
     return [...transactions].sort((a, b) => {
       let aValue, bValue;
-
       if (sortBy.field === "date") {
         aValue = new Date(a.date).getTime();
         bValue = new Date(b.date).getTime();
@@ -53,7 +52,6 @@ const MyTransaction = () => {
         aValue = a[sortBy.field].toLowerCase();
         bValue = b[sortBy.field].toLowerCase();
       }
-
       if (aValue < bValue) return sortBy.direction * -1;
       if (aValue > bValue) return sortBy.direction * 1;
       return 0;
@@ -80,7 +78,9 @@ const MyTransaction = () => {
 
     if (result.isConfirmed) {
       try {
-        const res = await fetch(`http://localhost:4000/data/${_id}`, { method: "DELETE" });
+        const res = await fetch(`https://personal-expense-server.onrender.com/data/${_id}`, {
+          method: "DELETE"
+        });
         if (!res.ok) throw new Error("Server deletion failed");
         setTransactions((prev) => prev.filter((t) => t._id !== _id));
         Swal.fire('Deleted!', 'Transaction has been deleted.', 'success');
@@ -92,9 +92,8 @@ const MyTransaction = () => {
   };
 
   const openModal = (transaction, mode) => {
-    setModalTransaction({ 
+    setModalTransaction({
       ...transaction,
-      // datetime-local compatible format
       date: transaction.date ? new Date(transaction.date).toISOString().slice(0, 16) : ""
     });
     setModalMode(mode);
@@ -122,7 +121,7 @@ const MyTransaction = () => {
     };
 
     try {
-      const res = await fetch(`http://localhost:4000/transaction/update/${updatedTransaction._id}`, {
+      const res = await fetch(`https://personal-expense-server.onrender.com/transaction/update/${updatedTransaction._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedTransaction),
@@ -131,7 +130,6 @@ const MyTransaction = () => {
       if (!res.ok) throw new Error("Failed to update transaction");
 
       const result = await res.json();
-      // Use result.data from backend
       setTransactions((prev) =>
         prev.map((t) => (t._id === result.data._id ? result.data : t))
       );
