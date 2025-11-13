@@ -3,8 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../AuthContext";
 import { FaUserCircle } from "react-icons/fa";
+import { FiSun, FiMoon } from "react-icons/fi";
 
-const Navbar = () => {
+const Navbar = ({ theme, setTheme }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -24,7 +25,7 @@ const Navbar = () => {
       initial={{ y: -80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="fixed w-full z-50 top-0 left-0 bg-white/40 backdrop-blur-lg shadow-md border-b border-white/20"
+      className="fixed w-full z-50 top-0 left-0 bg-white/40 dark:bg-gray-900/50 backdrop-blur-lg shadow-md border-b border-white/20 dark:border-gray-700"
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         <Link
@@ -34,47 +35,68 @@ const Navbar = () => {
           FinEase
         </Link>
 
-        <div className="hidden md:flex gap-6 text-gray-700 font-medium">
-          <Link to="/" className="hover:text-blue-600 transition">Home</Link>
-          <Link to="/add-transaction" className="hover:text-blue-600 transition">Add</Link>
-          <Link to="/my-transactions" className="hover:text-blue-600 transition">Transactions</Link>
-          <Link to="/reports" className="hover:text-blue-600 transition">Reports</Link>
-          <Link to="/my-profile" className="hover:text-blue-600 transition">Profile</Link>
+        <div className="hidden md:flex gap-6 text-gray-700 dark:text-gray-200 font-medium">
+          <Link to="/" className="hover:text-blue-600 dark:hover:text-blue-400 transition">
+            Home
+          </Link>
+          <Link to="/add-transaction" className="hover:text-blue-600 dark:hover:text-blue-400 transition">
+            Add
+          </Link>
+          <Link to="/my-transactions" className="hover:text-blue-600 dark:hover:text-blue-400 transition">
+            Transactions
+          </Link>
+          <Link to="/reports" className="hover:text-blue-600 dark:hover:text-blue-400 transition">
+            Reports
+          </Link>
+          <Link to="/my-profile" className="hover:text-blue-600 dark:hover:text-blue-400 transition">
+            Profile
+          </Link>
         </div>
 
         <div className="flex items-center gap-4">
+          <button
+            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+            className="p-2 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+          >
+            {theme === "light" ? <FiMoon size={20} /> : <FiSun size={20} className="text-yellow-400" />}
+          </button>
+
           {user ? (
             <div className="relative">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-2 hover:text-blue-600 transition"
+                className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition"
               >
                 {user.photoURL ? (
                   <img
                     src={user.photoURL}
                     alt="User"
-                    className="w-8 h-8 rounded-full border border-blue-300"
+                    className="w-8 h-8 rounded-full border border-blue-300 dark:border-gray-500 object-cover"
                   />
                 ) : (
-                  <FaUserCircle className="text-2xl text-gray-600" />
+                  <FaUserCircle className="text-2xl text-gray-600 dark:text-gray-300" />
                 )}
-                <span className="hidden sm:block">{user.displayName || "User"}</span>
+                <span className="hidden sm:block text-gray-700 dark:text-gray-200">{user.displayName || "User"}</span>
               </button>
 
               {dropdownOpen && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden"
+                  className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden"
                 >
-                  <div className="px-4 py-2 text-sm text-gray-700">
-                    <p>{user.email}</p>
+                  <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200 overflow-hidden text-ellipsis whitespace-nowrap">
+                    <p className="font-semibold">{user.displayName}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
                   </div>
+                  <Link to="/my-profile" onClick={() => setDropdownOpen(false)} className="w-full text-left block px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+                    Profile
+                  </Link>
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
+                    className="w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
-                    Logout
+                    Log out
                   </button>
                 </motion.div>
               )}
@@ -97,7 +119,7 @@ const Navbar = () => {
           )}
 
           <button
-            className="md:hidden text-2xl text-gray-700"
+            className="md:hidden text-2xl text-gray-700 dark:text-gray-200"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             ☰
@@ -109,20 +131,47 @@ const Navbar = () => {
         <motion.div
           initial={{ height: 0 }}
           animate={{ height: "auto" }}
-          className="md:hidden bg-white/80 backdrop-blur-lg shadow-md"
+          className="md:hidden bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg shadow-md"
         >
-          <div className="flex flex-col items-center py-4 gap-4 text-gray-700">
-            <Link to="/" className="hover:text-blue-600" onClick={() => setIsMenuOpen(false)}>Home</Link>
-            <Link to="/add-transaction" className="hover:text-blue-600" onClick={() => setIsMenuOpen(false)}>Add</Link>
-            <Link to="/my-transactions" className="hover:text-blue-600" onClick={() => setIsMenuOpen(false)}>Transactions</Link>
-            <Link to="/reports" className="hover:text-blue-600" onClick={() => setIsMenuOpen(false)}>Reports</Link>
-            <Link to="/my-profile" className="hover:text-blue-600" onClick={() => setIsMenuOpen(false)}>Profile</Link>
+          <div className="flex flex-col items-center py-4 gap-4 text-gray-700 dark:text-gray-200">
+            <Link to="/" className="hover:text-blue-600 dark:hover:text-blue-400" onClick={() => setIsMenuOpen(false)}>
+              Home
+            </Link>
+            <Link
+              to="/add-transaction"
+              className="hover:text-blue-600 dark:hover:text-blue-400"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Add
+            </Link>
+            <Link
+              to="/my-transactions"
+              className="hover:text-blue-600 dark:hover:text-blue-400"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Transactions
+            </Link>
+            <Link to="/reports" className="hover:text-blue-600 dark:hover:text-blue-400" onClick={() => setIsMenuOpen(false)}>
+              Reports
+            </Link>
+            <Link to="/my-profile" className="hover:text-blue-600 dark:hover:text-blue-400" onClick={() => setIsMenuOpen(false)}>
+              Profile
+            </Link>
 
             {!user && (
               <>
-                <Link to="/login" className="text-blue-600" onClick={() => setIsMenuOpen(false)}>Login</Link>
-                <Link to="/register" className="text-blue-600" onClick={() => setIsMenuOpen(false)}>Register</Link>
+                <Link to="/login" className="text-blue-600" onClick={() => setIsMenuOpen(false)}>
+                  Login
+                </Link>
+                <Link to="/register" className="text-blue-600" onClick={() => setIsMenuOpen(false)}>
+                  Register
+                </Link>
               </>
+            )}
+            {user && (
+                <button onClick={() => { handleLogout(); setIsMenuOpen(false); }} className="text-red-500">
+                    Log out
+                </button>
             )}
           </div>
         </motion.div>

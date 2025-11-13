@@ -4,11 +4,25 @@ import { useAuth } from "../AuthContext";
 import { updateProfile } from "firebase/auth";
 import Loader from "../components/Loader";
 import { motion } from "framer-motion";
+import Swal from "sweetalert2";
 
 const Register = () => {
   const { register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+
+  const validatePassword = (password) => {
+    if (password.length < 6) {
+      return "Password must be at least 6 characters long.";
+    }
+    if (!/[A-Z]/.test(password)) {
+      return "Password must contain at least one uppercase letter.";
+    }
+    if (!/[a-z]/.test(password)) {
+      return "Password must contain at least one lowercase letter.";
+    }
+    return null; 
+  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -18,11 +32,23 @@ const Register = () => {
     const password = e.target.password.value;
     const photo = e.target.photo.value;
 
+    const validationError = validatePassword(password);
+    if (validationError) {
+      Swal.fire("Validation Error", validationError, "error");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await register(email, password);
       await updateProfile(res.user, { displayName: name, photoURL: photo || "" });
+      
+      Swal.fire("Success!", "Registration successful. Welcome to FinEase!", "success");
       navigate("/");
-    } catch {}
+    } catch (error) {
+      const errorMessage = error.message.replace("Firebase: Error ", "").replace(/\(auth.*\)\.?/g, "").trim();
+      Swal.fire("Registration Failed", errorMessage, "error");
+    }
     setLoading(false);
   };
 
@@ -30,43 +56,81 @@ const Register = () => {
     setLoading(true);
     try {
       await loginWithGoogle();
+      Swal.fire("Success!", "Signed in with Google successfully.", "success");
       navigate("/");
-    } catch {}
+    } catch (error) {
+      const errorMessage = error.message.replace("Firebase: Error ", "").replace(/\(auth.*\)\.?/g, "").trim();
+      Swal.fire("Google Login Failed", errorMessage, "error");
+    }
     setLoading(false);
   };
 
   if (loading) return <Loader />;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 px-4">
       <motion.form
         onSubmit={handleRegister}
-        className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-md space-y-4"
+        className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-8 w-full max-w-md space-y-4 border border-gray-100 dark:border-gray-700"
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
       >
-        <h2 className="text-3xl font-bold text-center text-blue-600 mb-6">
+        <h2 className="text-3xl font-bold text-center text-blue-600 dark:text-blue-400 mb-6">
           Create Your Account
         </h2>
 
-        <input type="text" name="name" placeholder="Full Name" required className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" />
-        <input type="email" name="email" placeholder="Email Address" required className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" />
-        <input type="password" name="password" placeholder="Password" required className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" />
-        <input type="text" name="photo" placeholder="Photo URL (optional)" className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+        <input 
+          type="text" 
+          name="name" 
+          placeholder="Full Name" 
+          required 
+          className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" 
+        />
+        <input 
+          type="email" 
+          name="email" 
+          placeholder="Email Address" 
+          required 
+          className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" 
+        />
+        
+        <input 
+          type="password" 
+          name="password" 
+          placeholder="Password (Min 6 chars, 1 Uppercase, 1 Lowercase)" 
+          required 
+          className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" 
+        />
+        <input 
+          type="text" 
+          name="photo" 
+          placeholder="Photo URL (optional)" 
+          className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" 
+        />
 
-        <button type="submit" className="w-full mt-4 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-all font-semibold">
-          Register
+        <button 
+          type="submit" 
+          disabled={loading}
+          className="w-full mt-4 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-all font-semibold disabled:bg-gray-400"
+        >
+          {loading ? "Registering..." : "Register"}
         </button>
 
-        <p className="text-gray-400 text-center py-2">OR CONTINUE WITH</p>
+        <p className="text-gray-400 dark:text-gray-500 text-center py-2">OR CONTINUE WITH</p>
 
-        <button type="button" onClick={handleGoogleLogin} className="flex items-center justify-center w-full py-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-all gap-2">
+        <button 
+          type="button" 
+          onClick={handleGoogleLogin} 
+          disabled={loading}
+          className="flex items-center justify-center w-full py-3 bg-white dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-all gap-2 disabled:opacity-50"
+        >
+          <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_and_wordmark_of_Google_G_Suite.svg" alt="Google" className="w-5 h-5" />
           Login with Google
         </button>
 
-        <p className="text-center text-gray-600 mt-4">
-          Already have an account? <a href="/login" className="text-blue-600 hover:underline font-medium">Sign In</a>
+        <p className="text-center text-gray-600 dark:text-gray-400 mt-4">
+          Already have an account? <a href="/login" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">Sign In</a>
         </p>
       </motion.form>
     </div>
