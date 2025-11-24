@@ -10,7 +10,7 @@ const Home = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 300);
+    }, 100);
 
     return () => clearTimeout(timer);
   }, []);
@@ -24,7 +24,6 @@ const Home = () => {
       <div className="p-8 text-center">
         
         <Hero />
-        <Dashboard />
       </div>
       <Footer />
     </div>

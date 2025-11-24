@@ -5,17 +5,21 @@ import {
 } from "recharts";
 import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 import Loader from "../components/Loader";
+import { useAuth } from "../AuthContext";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82ca9d", "#ffc658", "#FF00FF", "#00FFFF", "#FFA500"];
 
 const Reports = () => {
+  const { user } = useAuth();
   const [transactions, setTransactions] = useState([]);
   const [monthFilter, setMonthFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("https://personal-expense-server.onrender.com/data")
+    if (!user) return;
+    setLoading(true);
+    fetch(`https://personal-expense-server-production.up.railway.app/data?email=${encodeURIComponent(user.email)}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch data");
         return res.json();
@@ -28,7 +32,7 @@ const Reports = () => {
         console.error(err);
         setLoading(false);
       });
-  }, []);
+  }, [user]);
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter((t) => {
@@ -48,7 +52,7 @@ const Reports = () => {
   }, [transactions, monthFilter, categoryFilter]);
 
   const expenseTransactions = filteredTransactions.filter(t => t.type === 'Expense');
-  
+
   const expenseCategoryData = expenseTransactions.reduce((acc, t) => {
     const found = acc.find((i) => i.name === t.category);
     if (found) found.value += Number(t.amount);
@@ -59,12 +63,12 @@ const Reports = () => {
   const monthlyData = filteredTransactions
     .reduce((acc, t) => {
       const date = new Date(t.date);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`; 
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
       let found = acc.find((i) => i.monthKey === monthKey);
       if (!found) {
         found = {
           monthKey,
-          month: date.toLocaleString('en-US', { month: 'short', year: 'numeric' }), 
+          month: date.toLocaleString('en-US', { month: 'short', year: 'numeric' }),
           income: 0,
           expense: 0,
         };
@@ -74,13 +78,14 @@ const Reports = () => {
       else found.expense += Number(t.amount);
       return acc;
     }, [])
-    .sort((a, b) => a.monthKey.localeCompare(b.monthKey)); 
+    .sort((a, b) => a.monthKey.localeCompare(b.monthKey));
 
   const totalIncome = filteredTransactions.filter((t) => t.type === "Income").reduce((sum, t) => sum + Number(t.amount), 0);
   const totalExpense = filteredTransactions.filter((t) => t.type === "Expense").reduce((sum, t) => sum + Number(t.amount), 0);
-  
+
   const categories = Array.from(new Set(transactions.map((t) => t.category)));
 
+  if (!user) return <h3 className="text-center text-gray-700 dark:text-gray-200 mt-24">Please login to view your reports.</h3>;
   if (loading) return <Loader />;
 
   return (

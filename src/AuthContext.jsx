@@ -6,12 +6,11 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
-  updateProfile // ✅ import করা হলো
+  updateProfile
 } from "firebase/auth";
 import { auth } from "../firebase.init";
 
 const AuthContext = createContext();
-
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
@@ -20,17 +19,13 @@ export const AuthProvider = ({ children }) => {
 
   const register = (email, password) => createUserWithEmailAndPassword(auth, email, password);
   const login = (email, password) => signInWithEmailAndPassword(auth, email, password);
-  const loginWithGoogle = () => {
-    const provider = new GoogleAuthProvider();
-    return signInWithPopup(auth, provider);
-  };
+  const loginWithGoogle = () => signInWithPopup(auth, new GoogleAuthProvider());
   const logout = () => signOut(auth);
 
-  // ✅ নতুন ফাংশন
-  const updateUserProfile = (displayName, photoURL) => {
-    if (!auth.currentUser) return Promise.reject("No user logged in");
-    return updateProfile(auth.currentUser, { displayName, photoURL })
-      .then(() => setUser({ ...auth.currentUser, displayName, photoURL }));
+  const updateUserProfile = async (displayName, photoURL) => {
+    if (!auth.currentUser) throw new Error("No user logged in");
+    await updateProfile(auth.currentUser, { displayName, photoURL });
+    setUser({ ...auth.currentUser }); 
   };
 
   useEffect(() => {
@@ -41,18 +36,8 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe;
   }, []);
 
-  const value = { 
-    user, 
-    loading, 
-    register, 
-    login, 
-    loginWithGoogle, 
-    logout,
-    updateUserProfile // ✅ context-এ যোগ করা হলো
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, loading, register, login, loginWithGoogle, logout, updateUserProfile }}>
       {!loading && children}
     </AuthContext.Provider>
   );

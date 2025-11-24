@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useAuth } from "../AuthContext";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
 
-const API_URL = import.meta.env.VITE_API_URL; // ✅ deployed server URL
+const BASE_URL = "https://personal-expense-server-production.up.railway.app";
 
 const AddTransaction = () => {
   const navigate = useNavigate();
@@ -20,25 +20,38 @@ const AddTransaction = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    let newFormData = { ...formData, [name]: value };
-    if (name === "type" && value !== formData.type) {
-      newFormData = { ...newFormData, category: "" };
-    }
-    setFormData(newFormData);
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+      ...(name === "type" ? { category: "" } : {}),
+    }));
   };
 
   const getCategories = (type) => {
-    const allCategories = {
+    const categories = {
       Income: ["Salary", "Investment", "Gift", "Rental Income", "Other Income"],
-      Expense: ["Food", "Transport", "Shopping", "Rent", "Utilities", "Health", "Entertainment", "Other Expense"],
+      Expense: [
+        "Food",
+        "Transport",
+        "Shopping",
+        "Rent",
+        "Utilities",
+        "Health",
+        "Entertainment",
+        "Other Expense",
+      ],
     };
-    return allCategories[type] || ["Salary", "Food", "Transport", "Shopping", "Other"];
+    return categories[type] || [];
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!user) return Swal.fire("Error", "You must be logged in!", "error");
-    if (Number(formData.amount) <= 0) return Swal.fire("Error", "Amount must be greater than 0!", "error");
+    if (!formData.type || !formData.category || !formData.date)
+      return Swal.fire("Error", "Please fill all required fields!", "error");
+    if (!formData.amount || Number(formData.amount) <= 0)
+      return Swal.fire("Error", "Amount must be greater than 0!", "error");
 
     const transactionData = {
       ...formData,
@@ -46,25 +59,32 @@ const AddTransaction = () => {
       userName: user.displayName || "Anonymous",
       userEmail: user.email,
       userId: user.uid,
+      createdAt: new Date(),
     };
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/data`, {
+      const res = await fetch(`${BASE_URL}/data`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(transactionData),
       });
 
-      if (!res.ok) throw new Error("Server error");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to add transaction");
 
-      await res.json();
-      Swal.fire("Success", "Transaction added successfully!", "success");
+      Swal.fire({
+        title: "Success!",
+        text: "Transaction added successfully!",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
       setFormData({ type: "", category: "", amount: "", description: "", date: "" });
       navigate("/my-transactions");
     } catch (err) {
-      console.error(err);
-      Swal.fire("Error", "Failed to add transaction", "error");
+      Swal.fire("Error", err.message, "error");
     } finally {
       setLoading(false);
     }
@@ -79,34 +99,39 @@ const AddTransaction = () => {
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="w-full max-w-md p-8 rounded-3xl backdrop-blur-xl bg-gray-800/70 shadow-2xl shadow-indigo-900/40 border border-gray-700/50 space-y-4"
       >
-        <h2 className="text-3xl font-bold text-center text-indigo-400 mb-6">Add Transaction 💰</h2>
+        <h2 className="text-3xl font-bold text-center text-indigo-400 mb-6">Add Transaction</h2>
 
+        {/* Type */}
         <select
           name="type"
           value={formData.type}
           onChange={handleChange}
           required
-          className="w-full p-3 rounded-xl border border-gray-700 bg-gray-700/50 text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-gray-700 transition"
+          className="w-full p-3 rounded-xl border border-gray-700 bg-gray-700/50 text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
         >
           <option value="">Select Type</option>
-          <option value="Income">Income 🟢</option>
-          <option value="Expense">Expense 🔴</option>
+          <option value="Income">Income</option>
+          <option value="Expense">Expense</option>
         </select>
 
+        {/* Category */}
         <select
           name="category"
           value={formData.category}
           onChange={handleChange}
           required
           disabled={!formData.type}
-          className="w-full p-3 rounded-xl border border-gray-700 bg-gray-700/50 text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-gray-700 transition disabled:opacity-50"
+          className="w-full p-3 rounded-xl border border-gray-700 bg-gray-700/50 text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 disabled:opacity-50"
         >
           <option value="">Select Category</option>
           {getCategories(formData.type).map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
           ))}
         </select>
 
+        {/* Amount */}
         <input
           type="number"
           name="amount"
@@ -114,61 +139,55 @@ const AddTransaction = () => {
           onChange={handleChange}
           placeholder="Amount"
           required
-          className="w-full p-3 rounded-xl border border-gray-700 bg-gray-700/50 text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-gray-700 transition"
+          min="0.01"
+          step="0.01"
+          className="w-full p-3 rounded-xl border border-gray-700 bg-gray-700/50 text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
+
+        {/* Description */}
         <input
           type="text"
           name="description"
           value={formData.description}
           onChange={handleChange}
-          placeholder="Description"
-          className="w-full p-3 rounded-xl border border-gray-700 bg-gray-700/50 text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-gray-700 transition"
+          placeholder="Description (optional)"
+          className="w-full p-3 rounded-xl border border-gray-700 bg-gray-700/50 text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
+
+        {/* Date */}
         <input
           type="datetime-local"
           name="date"
           value={formData.date}
           onChange={handleChange}
           required
-          className="w-full p-3 rounded-xl border border-gray-700 bg-gray-700/50 text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-gray-700 transition"
+          className="w-full p-3 rounded-xl border border-gray-700 bg-gray-700/50 text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
 
+        {/* User Info */}
         <input
           type="text"
           value={user?.displayName || "Anonymous"}
           readOnly
-          className="w-full p-3 rounded-xl border border-gray-700 bg-gray-700/50 text-gray-400 cursor-not-allowed transition"
+          className="w-full p-3 rounded-xl border border-gray-700 bg-gray-700/50 text-gray-400 cursor-not-allowed"
         />
         <input
           type="email"
-          value={user?.email}
+          value={user?.email || ""}
           readOnly
-          className="w-full p-3 rounded-xl border border-gray-700 bg-gray-700/50 text-gray-400 cursor-not-allowed transition"
+          className="w-full p-3 rounded-xl border border-gray-700 bg-gray-700/50 text-gray-400 cursor-not-allowed"
         />
 
         <button
           type="submit"
           disabled={loading}
-          className={`w-full mt-4 py-3 rounded-xl font-bold transition-all ${
-            loading ? "bg-gray-600 cursor-not-allowed text-gray-400" : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/30"
-          } flex justify-center items-center gap-2`}
+          className={`w-full mt-6 py-3 rounded-xl font-bold transition-all flex justify-center items-center gap-2 ${
+            loading
+              ? "bg-gray-600 cursor-not-allowed text-gray-400"
+              : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/30"
+          }`}
         >
-          {loading ? (
-            <>
-              <svg
-                className="animate-spin h-5 w-5 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-              </svg>
-              Adding...
-            </>
-          ) : (
-            "Add Transaction"
-          )}
+          {loading ? "Adding..." : "Add Transaction"}
         </button>
       </motion.form>
     </div>
